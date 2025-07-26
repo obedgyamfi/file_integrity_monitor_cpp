@@ -12,20 +12,137 @@
  */
 
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <filesystem>
+#include <cstdio>
+#include <map>
 
-int main()
+namespace fs = std::filesystem;
+
+std::string create_hash(const fs::path &file)
 {
-    std::cout << "Welcome, master" << std::endl;
+    // create a hash of the file using sha256
+    return "eab232a3234daf35354";
+}
+
+std::string create_new_hash_file(const std::string &file)
+{
+    try
+    {
+        // the new hash file logic will go here.
+    }
+    catch (const fs::filesystem_error &e)
+    {
+        std::cerr << "Filesystem error: " << e.what() << std::endl;
+    }
 
     return 0;
 }
 
-
-#include <iostream>
-
-int main()
+std::string monitor_file_integrity(const std::string path_str)
 {
-    std::cout << "Welcome, master" << std::endl;
+    try
+    {
+        // the file integrity monitoring will go here.
+    } catch ( ... )
+    {
+        std::cerr << "An error occurred." << std::endl;
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    // Command line parsing
+    if (argc != 3)
+    {
+        std::cout << "Cmd Parameter Usage: " << std::endl;
+        std::cout << "[Usage] --new   :   Create a new baseline" << std::endl;
+        std::cout << "[Usage] --mon  :   Monitor using available baseline" << std::endl;
+        std::cout << "Example: ./fim --new baseline.txt" << std::endl;
+        std::cout << "         ./fim --mon" << std::endl;
+    }
+
+    std::string command = argv[1];
+    std::string baseline_file = argv[2];
+    std::string path_str = ".";
+    fs::path dir_path(path_str);
+
+    if (command == "--new")
+    {
+        // check if baseline file exists
+        if (fs::exists(baseline_file))
+        {
+            if (remove(baseline_file.c_str()) == 0)
+                std::cout << "Baseline file deleted!" << std::endl;
+        }
+        else
+        {
+            std::cerr << "Error: File couldn't delete!" << std::endl;
+        }
+        std::ofstream baseline_text(baseline_file, std::ios::app);
+        if (baseline_text.is_open())
+        {
+            std::cout << "New baseline.txt created successfully" << std::endl;
+            if (fs::exists(dir_path) && fs::is_directory(dir_path))
+            {
+                std::cout << "Hashing the files in directory: " << dir_path << std::endl;
+                for (const auto &entry : fs::directory_iterator(dir_path))
+                {
+                    fs::path current_entry_path = entry.path();
+                    if (fs::is_regular_file(current_entry_path))
+                    {
+                        std::string file_hash = create_hash(current_entry_path.filename());
+                        std::cout << current_entry_path.filename() << std::endl;
+                        baseline_text << current_entry_path.filename() << " | " << file_hash << std::endl;
+                    }
+                }
+            }
+            else
+            {
+                std::cerr << "Error: Directory not found or not a directory." << std::endl;
+            }
+            baseline_text.close();
+        }
+        else
+        {
+            std::cerr << "Error file couldn't open" << std::endl;
+            return 1;
+        }
+    }
+    else if (command == "--mon")
+    {
+        // read baseline.txt
+        std::ifstream baseline_text;
+        baseline_text.open(baseline_file);
+
+        if (!baseline_text.is_open())
+        {
+            std::cerr << "Error opening file!" << std::endl;
+            return 1;
+        }
+
+        std::string line;
+        std::map<std::string, std::string> filehash_dict;
+        while (std::getline(baseline_text, line))
+        {
+            // split line into filepath and filehash
+            std::string filepath;
+            std::string filehash = create_hash(filepath);
+
+            filehash_dict.insert(std::pair<std::string, std::string>(filepath, filehash));
+        }
+        // begin monitoring for integrity
+
+        for (const auto &pair : filehash_dict)
+        {
+            std::cout << pair.first << " : " << pair.second << std::endl;
+        }
+    }
+    else
+    {
+        std::cerr << "Error: No command argument provided!" << std::endl;
+    }
 
     return 0;
 }
