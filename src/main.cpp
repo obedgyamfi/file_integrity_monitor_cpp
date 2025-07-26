@@ -51,6 +51,27 @@ std::string monitor_file_integrity(const std::string path_str)
     }
 }
 
+std::pair<std::string, std::string> split_string(const std::string &text_line, const std::string &delimiter)
+{
+    std::string file_path, file_hash;
+    std::pair<std::string, std::string> file_pair;
+
+    size_t start = 0;
+    size_t end = text_line.find(delimiter);
+
+    while(end != std::string::npos){
+        file_path = text_line.substr(start, end - start);
+
+        start = end + delimiter.length();
+        end = text_line.find(delimiter, start);
+    }
+    file_hash = text_line.substr(start, end - start);
+    file_pair.first = file_path;
+    file_pair.second = file_hash;
+
+    return file_pair;
+}
+
 int main(int argc, char *argv[])
 {
     // Command line parsing
@@ -60,7 +81,9 @@ int main(int argc, char *argv[])
         std::cout << "[Usage] --new   :   Create a new baseline" << std::endl;
         std::cout << "[Usage] --mon  :   Monitor using available baseline" << std::endl;
         std::cout << "Example: ./fim --new baseline.txt" << std::endl;
-        std::cout << "         ./fim --mon" << std::endl;
+        std::cout << "         ./fim --mon baseline.txt" << std::endl;
+
+        return 1;
     }
 
     std::string command = argv[1];
@@ -126,14 +149,8 @@ int main(int argc, char *argv[])
         std::map<std::string, std::string> filehash_dict;
         while (std::getline(baseline_text, line))
         {
-            // split line into filepath and filehash
-            std::string filepath;
-            std::string filehash = create_hash(filepath);
-
-            filehash_dict.insert(std::pair<std::string, std::string>(filepath, filehash));
+            filehash_dict.insert(split_string(line, "|"));
         }
-        // begin monitoring for integrity
-
         for (const auto &pair : filehash_dict)
         {
             std::cout << pair.first << " : " << pair.second << std::endl;
@@ -141,7 +158,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        std::cerr << "Error: No command argument provided!" << std::endl;
+        std::cerr << "Error: Incorrect command argument provided!" << std::endl;
     }
 
     return 0;
