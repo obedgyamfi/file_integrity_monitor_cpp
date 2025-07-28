@@ -33,4 +33,8 @@ clean:
 # Rebuild everything
 rebuild: clean all
 
+# Run built .exe
+run: 
+	./build/file_integrity_monitor.exe
+
 .PHONY: all clean rebuild

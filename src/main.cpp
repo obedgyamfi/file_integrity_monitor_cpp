@@ -17,27 +17,30 @@
 #include <filesystem>
 #include <cstdio>
 #include <map>
+#include <vector>
 
 namespace fs = std::filesystem;
 
-std::string create_hash(const fs::path &file)
+std::string calculateSha256(const std::vector<char>& buffer)
 {
-    // create a hash of the file using sha256
-    return "eab232a3234daf35354";
+    return "ebc234234f324d32c323b323"
 }
 
-std::string create_new_hash_file(const std::string &file)
+std::vector<char> readFileIntoBuffer(const std::string &filename)
 {
-    try
-    {
-        // the new hash file logic will go here.
-    }
-    catch (const fs::filesystem_error &e)
-    {
-        std::cerr << "Filesystem error: " << e.what() << std::endl;
-    }
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
 
-    return 0;
+    if (!file.is_open())
+    {
+        std::cerr << "Error: could not open file " << filename << std::endl;
+        return 1;
+    }
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    std::vector<char> buffer(size);
+    file.read(buffer.data(), size);
+
+    return buffer;
 }
 
 std::string monitor_file_integrity(const std::string path_str)
@@ -114,9 +117,12 @@ int main(int argc, char *argv[])
                 {
                     fs::path current_entry_path = entry.path();
                     if (fs::is_regular_file(current_entry_path))
-                    {
-                        std::string file_hash = create_hash(current_entry_path.filename());
-                        std::cout << current_entry_path.filename() << std::endl;
+                    { 
+                        std::vector<char> fileContent = readFileIntoBuffer(current_entry_path);
+                        std::string file_hash = calculateSha256(fileContent);
+
+                        std::cout << current_entry_path.filename() << std::endl; // For debug purposes
+
                         baseline_text << current_entry_path.filename() << " | " << file_hash << std::endl;
                     }
                 }
