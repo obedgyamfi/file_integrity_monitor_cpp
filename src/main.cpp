@@ -23,17 +23,17 @@ namespace fs = std::filesystem;
 
 std::string calculateSha256(const std::vector<char>& buffer)
 {
-    return "ebc234234f324d32c323b323"
+    return "ebc234234f324d32c323b323";
 }
 
-std::vector<char> readFileIntoBuffer(const std::string &filename)
+std::vector<char> readFileIntoBuffer(const fs::path &filename)
 {
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
 
     if (!file.is_open())
     {
         std::cerr << "Error: could not open file " << filename << std::endl;
-        return 1;
+        return {};
     }
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
