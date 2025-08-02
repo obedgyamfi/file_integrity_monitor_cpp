@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <map>
 #include <vector>
+#include "hasher.hpp"
 
 namespace fs = std::filesystem;
 
@@ -93,6 +94,7 @@ int main(int argc, char *argv[])
     std::string baseline_file = argv[2];
     std::string path_str = ".";
     fs::path dir_path(path_str);
+    Hasher hasher;
 
     if (command == "--new")
     {
@@ -119,8 +121,8 @@ int main(int argc, char *argv[])
                     if (fs::is_regular_file(current_entry_path))
                     { 
                         std::vector<char> fileContent = readFileIntoBuffer(current_entry_path);
-                        std::string file_hash = calculateSha256(fileContent);
-
+                        // std::string file_hash = calculateSha256(fileContent);
+                        int result = hasher.hash(file_hash,)
                         std::cout << current_entry_path.filename() << std::endl; // For debug purposes
 
                         baseline_text << current_entry_path.filename() << " | " << file_hash << std::endl;
