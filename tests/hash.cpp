@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector> 
 #include <bcrypt.h>
+#include <string>
 
 int main()
 {

@@ -6,20 +6,19 @@
 
 class Hasher {
     public:
-        const char* buffer;
-
         DWORD hashObjectSize;
         DWORD cbData;
         BCRYPT_ALG_HANDLE hAlg;
         BCRYPT_HASH_HANDLE hHash;
+        PUCHAR pbHashObject;
         DWORD cbHash;
-        std::vector<BYTE> hash;
+        // std::vector<BYTE> hash;
 
         // constructor
-        Hasher() {}
+        Hasher();
 
         // destructor
-        ~Hasher() {}
+        ~Hasher();
 
-        int hash(const char* data, ){}
+        int createHash(const char* fileContent, std::vector<BYTE>& hash);
 }; // HASHER_HPP

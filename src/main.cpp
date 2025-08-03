@@ -121,11 +121,21 @@ int main(int argc, char *argv[])
                     if (fs::is_regular_file(current_entry_path))
                     { 
                         std::vector<char> fileContent = readFileIntoBuffer(current_entry_path);
+                        
                         // std::string file_hash = calculateSha256(fileContent);
-                        int result = hasher.hash(file_hash,)
-                        std::cout << current_entry_path.filename() << std::endl; // For debug purposes
+                        const char* file_content = fileContent.data();
+                        std::vector<BYTE> file_hash;
+                        // std::cout << file_data << std::endl;
+                        int result = hasher.createHash(file_content, file_hash);
+                        // std::cout << current_entry_path.filename() << std::endl; // For debug purposes
+                        std::string out;
+                        char buf[3];
+                        for (BYTE b : file_hash)
+                            // printf("%02x", b);
+                            sprintf(buf, "%02x", b);
+                            out += buf;
 
-                        baseline_text << current_entry_path.filename() << " | " << file_hash << std::endl;
+                        baseline_text << current_entry_path.filename() << " | " << out << std::endl;
                     }
                 }
             }

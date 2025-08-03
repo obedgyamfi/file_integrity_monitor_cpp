@@ -1,6 +1,7 @@
 # Compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude
+LDFLAGS = -lbcrypt
 
 # Directories
 SRC_DIR = src
@@ -19,7 +20,7 @@ all: $(TARGET)
 
 # Link the object files
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compile .cpp to .o
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
