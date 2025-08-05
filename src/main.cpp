@@ -169,9 +169,16 @@ int main(int argc, char *argv[])
         {
             filehash_dict.insert(split_string(line, "|"));
         }
+
+        // debug purpose 
         for (const auto &pair : filehash_dict)
         {
             std::cout << pair.first << " : " << pair.second << std::endl;
+        }
+
+        // begin monitoring 
+        while(true){
+            
         }
     }
     else
