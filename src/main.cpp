@@ -23,10 +23,7 @@
 
 namespace fs = std::filesystem;
 
-std::string calculateSha256(const std::vector<char>& buffer)
-{
-    return "ebc234234f324d32c323b323";
-}
+
 
 std::vector<char> readFileIntoBuffer(const fs::path &filename)
 {
