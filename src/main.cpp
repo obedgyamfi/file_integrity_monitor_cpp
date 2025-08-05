@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <map>
 #include <vector>
+#include <sstream>
 #include "hasher.hpp"
 
 namespace fs = std::filesystem;
@@ -125,16 +126,15 @@ int main(int argc, char *argv[])
                         // std::string file_hash = calculateSha256(fileContent);
                         const char* file_content = fileContent.data();
                         std::vector<BYTE> file_hash;
-                        // std::cout << file_data << std::endl;
+                        
                         int result = hasher.createHash(file_content, file_hash);
-                        // std::cout << current_entry_path.filename() << std::endl; // For debug purposes
-                        std::string out;
-                        char buf[3];
-                        for (BYTE b : file_hash)
-                            // printf("%02x", b);
-                            sprintf(buf, "%02x", b);
-                            out += buf;
 
+                        std::ostringstream oss;
+                        for (BYTE b : file_hash) {
+                            oss << std::hex <<std::setw(2) << std::setfill('0') << (int)b;
+                        }
+                        std::string out = oss.str();
+                        
                         baseline_text << current_entry_path.filename() << " | " << out << std::endl;
                     }
                 }

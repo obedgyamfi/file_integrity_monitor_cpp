@@ -59,10 +59,6 @@ int Hasher::createHash(const char *data, std::vector<BYTE>& hash)
         return 1;
     }
 
-    // for (BYTE b : hash)
-    //     printf("%02x", b);
-    // printf("\n");
-
     if (hHash)
         BCryptDestroyHash(hHash);
     hHash = nullptr;
