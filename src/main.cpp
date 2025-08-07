@@ -19,11 +19,11 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <thread>
+#include <chrono>
 #include "hasher.hpp"
 
 namespace fs = std::filesystem;
-
-
 
 std::vector<char> readFileIntoBuffer(const fs::path &filename)
 {
@@ -42,17 +42,6 @@ std::vector<char> readFileIntoBuffer(const fs::path &filename)
     return buffer;
 }
 
-std::string monitor_file_integrity(const std::string path_str)
-{
-    try
-    {
-        // the file integrity monitoring will go here.
-    } catch ( ... )
-    {
-        std::cerr << "An error occurred." << std::endl;
-    }
-}
-
 std::pair<std::string, std::string> split_string(const std::string &text_line, const std::string &delimiter)
 {
     std::string file_path, file_hash;
@@ -61,7 +50,8 @@ std::pair<std::string, std::string> split_string(const std::string &text_line, c
     size_t start = 0;
     size_t end = text_line.find(delimiter);
 
-    while(end != std::string::npos){
+    while (end != std::string::npos)
+    {
         file_path = text_line.substr(start, end - start);
 
         start = end + delimiter.length();
@@ -117,21 +107,22 @@ int main(int argc, char *argv[])
                 {
                     fs::path current_entry_path = entry.path();
                     if (fs::is_regular_file(current_entry_path))
-                    { 
+                    {
                         std::vector<char> fileContent = readFileIntoBuffer(current_entry_path);
-                        
+
                         // std::string file_hash = calculateSha256(fileContent);
-                        const char* file_content = fileContent.data();
+                        const char *file_content = fileContent.data();
                         std::vector<BYTE> file_hash;
-                        
-                        int result = hasher.createHash(file_content, file_hash);
+
+                        hasher.createHash(file_content, file_hash);
 
                         std::ostringstream oss;
-                        for (BYTE b : file_hash) {
-                            oss << std::hex <<std::setw(2) << std::setfill('0') << (int)b;
+                        for (BYTE b : file_hash)
+                        {
+                            oss << std::hex << std::setw(2) << std::setfill('0') << (int)b;
                         }
                         std::string out = oss.str();
-                        
+
                         baseline_text << current_entry_path.filename() << " | " << out << std::endl;
                     }
                 }
@@ -161,27 +152,78 @@ int main(int argc, char *argv[])
         }
 
         std::string line;
-        std::map<std::string, std::string> filehash_dict;
+
+        std::map<std::string, std::string> filehash_dict; // contains saved file hash from baseline.txt
+
         while (std::getline(baseline_text, line))
         {
             filehash_dict.insert(split_string(line, "|"));
         }
 
-        // debug purpose 
+        // debug purpose
         for (const auto &pair : filehash_dict)
         {
             std::cout << pair.first << " : " << pair.second << std::endl;
         }
 
-        // begin monitoring 
-        while(true){
-            
+        // begin monitoring
+        while (true)
+        {
+            // set a sleep time
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            // check for deleted files
+            for (auto it = filehash_dict.begin(); it != filehash_dict.end();)
+            {
+                if (!fs::exists(dir_path / it->first))
+                {
+                    std::cout << "A file has been DELETED " << it->first << std::endl;
+                    it = filehash_dict.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+
+            // check for created or modified files
+            for (const auto &entry : fs::directory_iterator(dir_path))
+            {
+                if (fs::is_regular_file(entry.path()))
+                {
+                    std::string filename = entry.path().filename().string();
+                    std::vector<char> fileContent = readFileIntoBuffer(entry.path());
+
+                    // std::string file_hash = calculateSha256(fileContent);
+                    const char *file_content = fileContent.data();
+                    std::vector<BYTE> file_hash;
+                    hasher.createHash(file_content, file_hash);
+
+                    std::ostringstream oss;
+                    for (BYTE b : file_hash)
+                    {
+                        oss << std::hex << std::setw(2) << std::setfill('0') << (int)b;
+                    }
+                    std::string hash_str = oss.str();
+
+                    auto it = filehash_dict.find(filename);
+
+                    // New file created
+                    if (it == filehash_dict.end())
+                    {
+                        std::cout << "A new file has been CREATED " << filename << std::endl;
+                        filehash_dict[filename] = hash_str; // add the filename to baseline
+                    }
+
+                    // Modified file
+                    else if (it->second != hash_str)
+                    {
+                        std::cout << "File has been MODIFIED " << filename << std::endl;
+                        it->second = hash_str; // update storead hash
+                    }
+                }
+            }
         }
     }
-    else
-    {
-        std::cerr << "Error: Incorrect command argument provided!" << std::endl;
-    }
-
     return 0;
 }
